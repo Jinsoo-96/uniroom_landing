@@ -1,0 +1,27 @@
+{
+  "name": "uniroom_landing",
+  "private": true,
+  "version": "0.0.0",
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build",
+    "preview": "vite preview",
+    "deploy": "vite build && npx gh-pages -d dist"
+  },
+  "devDependencies": {
+    "@sveltejs/vite-plugin-svelte": "^5.0.3",
+    "@tailwindcss/postcss": "^4.1.4",
+    "@types/three": "^0.176.0",
+    "autoprefixer": "^10.4.21",
+    "gh-pages": "^6.3.0",
+    "postcss": "^8.5.3",
+    "svelte": "^5.23.1",
+    "tailwindcss": "^3.4.1",
+    "vite": "^6.3.1"
+  },
+  "dependencies": {
+    "svelte-spa-router": "^4.0.1",
+    "three": "^0.176.0"
+  }
+}
