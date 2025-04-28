@@ -1,0 +1,221 @@
+<!DOCTYPE html>
+<html lang="ko">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>순수 비디오 스크롤 테스트</title>
+    <style>
+      body {
+        margin: 0;
+        padding: 0;
+        height: 1500vh; /* 스크롤 공간 확보 - 화면 높이의 15배 (3배 증가) */
+        background-color: #000;
+        display: flex;
+        justify-content: center;
+      }
+
+      .video-container {
+        position: fixed;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        width: 60%;
+        max-width: 800px;
+        height: auto;
+        z-index: -1;
+        border-radius: 10px;
+        overflow: hidden;
+        box-shadow: 0 0 20px rgba(255, 255, 255, 0.2);
+      }
+
+      video {
+        width: 100%;
+        height: 100%;
+        object-fit: contain;
+      }
+
+      .scroll-info {
+        position: fixed;
+        bottom: 20px;
+        left: 50%;
+        transform: translateX(-50%);
+        background-color: rgba(0, 0, 0, 0.7);
+        color: white;
+        padding: 10px 20px;
+        border-radius: 20px;
+        font-family: Arial, sans-serif;
+      }
+
+      /* 스크롤 진행률 표시 */
+      .progress-bar {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 0%;
+        height: 4px;
+        background: linear-gradient(to right, #8a2be2, #ff69b4);
+        z-index: 100;
+        transition: width 0.1s;
+      }
+
+      /* 스크롤 구간 표시 마커 */
+      .scroll-markers {
+        position: fixed;
+        top: 12px;
+        right: 20px;
+        display: flex;
+        flex-direction: column;
+        gap: 4px;
+        z-index: 100;
+      }
+
+      .marker {
+        width: 30px;
+        height: 3px;
+        background-color: rgba(255, 255, 255, 0.3);
+        border-radius: 3px;
+      }
+
+      .marker.active {
+        background-color: #8a2be2;
+      }
+    </style>
+  </head>
+  <body>
+    <!-- 진행률 표시 바 -->
+    <div class="progress-bar" id="progressBar"></div>
+
+    <!-- 스크롤 구간 표시 마커 -->
+    <div class="scroll-markers" id="scrollMarkers">
+      <div class="marker" data-section="0"></div>
+      <div class="marker" data-section="1"></div>
+      <div class="marker" data-section="2"></div>
+      <div class="marker" data-section="3"></div>
+      <div class="marker" data-section="4"></div>
+    </div>
+
+    <div class="video-container">
+      <video id="scrollVideo" muted playsinline>
+        <source src="iphone.mp4" type="video/mp4" />
+      </video>
+    </div>
+
+    <div class="scroll-info" id="scrollInfo">스크롤: 0% | 비디오: 0초</div>
+
+    <script>
+      document.addEventListener("DOMContentLoaded", function () {
+        const video = document.getElementById("scrollVideo");
+        const scrollInfo = document.getElementById("scrollInfo");
+        const progressBar = document.getElementById("progressBar");
+        const markers = document.querySelectorAll(".marker");
+        let videoLoaded = false;
+
+        // 스크롤 이벤트 핸들러
+        function handleScroll() {
+          const scrollPosition = window.scrollY;
+          const maxScroll = document.body.scrollHeight - window.innerHeight;
+          const scrollPercentage = (scrollPosition / maxScroll) * 100;
+
+          // 진행률 바 업데이트
+          progressBar.style.width = scrollPercentage + "%";
+
+          // 마커 업데이트
+          updateMarkers(scrollPercentage);
+
+          // 비디오 시간 업데이트
+          updateVideoTime(scrollPosition, maxScroll);
+
+          // 스크롤 정보 업데이트
+          if (videoLoaded) {
+            scrollInfo.textContent = `스크롤: ${scrollPercentage.toFixed(
+              1
+            )}% | 비디오: ${video.currentTime.toFixed(
+              2
+            )}초/${video.duration.toFixed(2)}초`;
+          }
+        }
+
+        // 마커 업데이트 함수
+        function updateMarkers(scrollPercentage) {
+          const sectionSize = 100 / markers.length;
+
+          markers.forEach((marker, index) => {
+            const sectionStart = index * sectionSize;
+            const sectionEnd = (index + 1) * sectionSize;
+
+            if (
+              scrollPercentage >= sectionStart &&
+              scrollPercentage < sectionEnd
+            ) {
+              marker.classList.add("active");
+            } else {
+              marker.classList.remove("active");
+            }
+          });
+        }
+
+        // 비디오 시간 업데이트 함수
+        function updateVideoTime(scrollPosition, maxScroll) {
+          if (!video || !videoLoaded) return;
+
+          // 스크롤 위치에 따른 비디오 시간 계산
+          const scrollFraction = scrollPosition / maxScroll;
+          const boundedFraction = Math.min(Math.max(scrollFraction, 0), 1);
+          const videoTime = video.duration * boundedFraction;
+
+          if (videoTime !== undefined && !isNaN(videoTime)) {
+            video.currentTime = videoTime;
+          }
+        }
+
+        // 비디오 로드 이벤트 리스너
+        video.addEventListener("loadedmetadata", function () {
+          videoLoaded = true;
+          console.log("비디오 로드 완료! 길이:", video.duration, "초");
+
+          // 초기 비디오 시간 설정
+          video.currentTime = 0;
+
+          // 비디오가 자동으로 재생되지 않도록 일시정지
+          video.pause();
+
+          // 스크롤 이벤트 리스너 등록
+          window.addEventListener("scroll", handleScroll);
+
+          // 초기 정보 표시
+          scrollInfo.textContent = `스크롤: 0% | 비디오: 0초/${video.duration.toFixed(
+            2
+          )}초`;
+
+          // 마커 클릭 이벤트 설정
+          setupMarkerClicks();
+        });
+
+        // 마커 클릭 이벤트 설정
+        function setupMarkerClicks() {
+          markers.forEach((marker, index) => {
+            marker.addEventListener("click", () => {
+              const sectionSize = 100 / markers.length;
+              const targetPercentage = index * sectionSize;
+              const maxScroll = document.body.scrollHeight - window.innerHeight;
+              const targetScroll = (targetPercentage / 100) * maxScroll;
+
+              window.scrollTo({
+                top: targetScroll,
+                behavior: "smooth",
+              });
+            });
+          });
+        }
+
+        // 비디오 로드 에러 처리
+        video.addEventListener("error", function (e) {
+          console.error("비디오 로드 오류:", e);
+          scrollInfo.textContent =
+            "⚠️ 비디오 로드 실패! 파일 경로를 확인하세요.";
+          scrollInfo.style.backgroundColor = "rgba(255, 0, 0, 0.7)";
+        });
+      });
+    </script>
+  </body>
+</html>

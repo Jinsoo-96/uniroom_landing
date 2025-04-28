@@ -317,7 +317,7 @@
     <a href="#" class="text-2xl font-bold text-purple-600">UniRoom</a>
     <nav class="hidden md:flex gap-8">
       <a href="#" class="text-gray-700 hover:text-purple-600 transition-colors font-medium">홈</a>
-      <a href="#" class="text-gray-700 hover:text-purple-600 transition-colors font-medium">기능</a>
+      <a href="/uniroom_landing/src/test/sc.html" class="text-gray-700 hover:text-purple-600 transition-colors font-medium">기능</a>
       <a href="#" class="text-gray-700 hover:text-purple-600 transition-colors font-medium">가격</a>
       <a href="#" class="text-gray-700 hover:text-purple-600 transition-colors font-medium">문의</a>
     </nav>
